@@ -1,20 +1,27 @@
 <h1>Real Time Messaging</h1>
 <pre id="messages" style="height: 400px; overflow: scroll"></pre>
+<h4>UserName:</h4>
+<input type="text" id="userBox" placeholder="Type your username:" style="display: block; width: 100%; margin-bottom: 10px; padding: 10px;" />
 <input type="text" id="messageBox" placeholder="Type your message here" style="display: block; width: 100%; margin-bottom: 10px; padding: 10px;" />
 <button id="send" title="Send Message!" style="width: 100%; height: 30px;">Send Message</button>
+
 
 <script>
   (function() {
     const sendBtn = document.querySelector('#send');
     const messages = document.querySelector('#messages');
     const messageBox = document.querySelector('#messageBox');
+    const userBox = document.querySelector('#userBox');
 
     let ws;
 
-    function showMessage(message) {
-      messages.textContent += `\n\n${message}`;
+    function showMessage(data) {
+      if( data !== undefined){
+      var value = JSON.parse(data);
+      messages.textContent += `\n\n${value.userName}\n${value.message}`;
       messages.scrollTop = messages.scrollHeight;
       messageBox.value = '';
+      }
     }
 
     function init() {
@@ -27,7 +34,11 @@
       ws.onopen = () => {
         console.log('Connection opened!');
       }
-      ws.onmessage = ({ data }) => showMessage(data);
+      ws.onmessage = ({ data }) => {
+         // https://developer.mozilla.org/en-US/docs/Web/API/WebSocket/onmessage
+         showMessage(data);
+         console.log(data);
+      }
       ws.onclose = function() {
         ws = null;
       }
@@ -38,11 +49,12 @@
         showMessage("No WebSocket connection :(");
         return ;
       }
-
-      ws.send(messageBox.value);
-      showMessage(messageBox.value);
+      // https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API/Writing_WebSocket_client_applications
+      const data = {message : messageBox.value, userName: userBox.value};
+      const stringData = JSON.stringify(data);
+      ws.send(stringData);
+      showMessage(stringData);
     }
-
     init();
   })();
 </script>
